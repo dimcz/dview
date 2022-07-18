@@ -6,7 +6,6 @@ import (
 	"io"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/dimcz/viewer/internal/config"
 	"github.com/dimcz/viewer/pkg/logger"
@@ -28,7 +27,6 @@ type Docker struct {
 	log *logger.Logger
 	cfg *config.Config
 
-	wg     *sync.WaitGroup
 	ctx    context.Context
 	cancel func()
 }
@@ -49,22 +47,11 @@ func (d *Docker) Load(out io.Writer) {
 		Follow:     false,
 	}
 
-	if err := d.download(info.Config.Tty, out, opts); err != nil {
-		d.log.Error(err)
-	}
+	d.download(info.Config.Tty, out, opts)
 
-	d.wg.Add(1)
-
-	go func() {
-		defer d.wg.Done()
-
-		opts.Tail = "0"
-		opts.Follow = true
-
-		if err := d.download(info.Config.Tty, out, opts); err != nil {
-			d.log.Error("failed to download with: ", err)
-		}
-	}()
+	opts.Tail = "0"
+	opts.Follow = true
+	go d.download(info.Config.Tty, out, opts)
 }
 
 func (d *Docker) SetNextContainer() {
@@ -101,10 +88,9 @@ func (d *Docker) Close() {
 
 func (d *Docker) Stop() {
 	d.cancel()
-	d.wg.Wait()
 }
 
-func (d *Docker) download(tty bool, out io.Writer, opts types.ContainerLogsOptions) error {
+func (d *Docker) download(tty bool, out io.Writer, opts types.ContainerLogsOptions) {
 	fd, err := d.cli.ContainerLogs(d.ctx, d.containers[d.current].ID, opts)
 	if err != nil {
 		d.log.Error("failed to load logs:", err)
@@ -115,12 +101,10 @@ func (d *Docker) download(tty bool, out io.Writer, opts types.ContainerLogsOptio
 	}()
 
 	if tty {
-		_, err = io.Copy(out, fd)
+		_, _ = io.Copy(out, fd)
 	} else {
-		_, err = stdcopy.StdCopy(out, out, fd)
+		_, _ = stdcopy.StdCopy(out, out, fd)
 	}
-
-	return err
 }
 
 func getContainers(cli *client.Client) (containers []Container, err error) {
@@ -152,6 +136,5 @@ func Client(log *logger.Logger, cfg *config.Config) (*Docker, error) {
 		cfg:        cfg,
 		cli:        cli,
 		containers: containers,
-		wg:         new(sync.WaitGroup),
 	}, nil
 }

@@ -59,7 +59,7 @@ func (v *Viewer) Start() error {
 	}
 
 	v.ov.SetLog(v.log.Debug)
-	v.ov.General.FollowAll = true
+	v.ov.General.FollowMode = true
 	v.ov.General.WrapMode = true
 	v.ov.Config.DisableMouse = !v.cfg.Mouse
 
@@ -139,8 +139,6 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 	}
 
 	doc.Caption = v.dock.Name()
-	doc.WrapMode = true
-	doc.FollowAll = true
 
 	return doc, nil
 }

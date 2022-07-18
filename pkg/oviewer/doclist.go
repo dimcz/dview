@@ -26,16 +26,15 @@ func (root *Root) hasDocChanged() bool {
 }
 
 func (root *Root) replaceDocument(m *Document) {
+	m.general = root.Config.General
+	m.setSectionDelimiter(m.SectionDelimiter)
+
 	root.mu.Lock()
-
 	root.DocList = append(root.DocList, m)
-
 	if err := root.DocList[root.CurrentDoc].close(); err != nil {
 		root.log("%s:%s", root.Doc.FileName, err)
 	}
-
 	root.DocList = root.DocList[1:]
-
 	root.mu.Unlock()
 
 	root.setDocument(m)
