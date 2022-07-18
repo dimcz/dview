@@ -70,6 +70,7 @@ func (d *Docker) SetNextContainer() {
 	if c >= len(d.containers) {
 		c = 0
 	}
+
 	d.current = c
 }
 
@@ -78,6 +79,7 @@ func (d *Docker) SetPrevContainer() {
 	if c < 0 {
 		c = len(d.containers) - 1
 	}
+
 	d.current = c
 }
 

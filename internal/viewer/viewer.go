@@ -25,11 +25,11 @@ type Viewer struct {
 	ov *oviewer.Root
 }
 
-func Init(l *logger.Logger, cfg *config.Config, dock *docker.Docker) (*Viewer, error) {
-
+func Init(log *logger.Logger, cfg *config.Config, dock *docker.Docker) (*Viewer, error) {
 	ctx, cancel := context.WithCancel(context.Background())
+
 	return &Viewer{
-		log:    l,
+		log:    log,
 		cfg:    cfg,
 		ctx:    ctx,
 		cancel: cancel,
@@ -42,7 +42,7 @@ func (v *Viewer) Shutdown() {
 	v.cancel()
 
 	if err := os.Remove(v.cache.Name()); err != nil {
-		//
+		v.log.Error(err)
 	}
 }
 
@@ -89,6 +89,7 @@ func (v *Viewer) Stop() {
 func (v *Viewer) NewDocument() error {
 	v.log.Info("create new document")
 	doc, err := v.newDocument()
+
 	if err != nil {
 		return errors.Wrap(err, "failed to create document")
 	}

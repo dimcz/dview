@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"terminal/internal/viewer"
 	"terminal/pkg/docker"
@@ -23,24 +22,31 @@ func main() {
 
 	if cfg.Version {
 		fmt.Println("Dlog version", VERSION)
-		os.Exit(0)
+
+		return
 	}
 
 	client, err := docker.Client(log, cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+
+		return
 	}
 
 	defer client.Close()
 
 	v, err := viewer.Init(log, cfg, client)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+
+		return
 	}
 
 	defer v.Shutdown()
 
 	if err := v.Start(); err != nil {
-		log.Fatal(err)
+		log.Error(err)
+
+		return
 	}
 }
