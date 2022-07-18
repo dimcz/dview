@@ -42,7 +42,7 @@ func (root *Root) replaceDocument(m *Document) {
 
 // addDocument adds a document and displays it.
 func (root *Root) addDocument(m *Document) {
-	// root.setMessagef("add %s", m.FileName)
+	root.setMessagef("add %s", m.Caption)
 	m.general = root.Config.General
 	m.setSectionDelimiter(m.SectionDelimiter)
 

@@ -83,15 +83,13 @@ func (v *Viewer) Start() error {
 }
 
 func (v *Viewer) Stop() {
-	v.log.Info("close document")
 	v.dock.Stop()
 
-	v.log.LogOnErr(v.cache.Close())
-	v.log.LogOnErr(os.Remove(v.cache.Name()))
+	//	v.log.LogOnErr(v.cache.Close())
+	//	v.log.LogOnErr(os.Remove(v.cache.Name()))
 }
 
 func (v *Viewer) NewDocument() error {
-	v.log.Info("create new document")
 	doc, err := v.newDocument()
 
 	if err != nil {
