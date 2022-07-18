@@ -332,9 +332,9 @@ func (root *Root) normalLeftStatus() (contents, int) {
 	leftStatus := fmt.Sprintf("%s%s%s:%s", number, modeStatus, caption, root.message)
 	leftContents := StrToContents(leftStatus, -1)
 	color := tcell.ColorWhite
-	if root.CurrentDoc != 0 {
-		color = tcell.Color((root.CurrentDoc + 8) % 16)
-	}
+	// if root.CurrentDoc != 0 {
+	//	color = tcell.Color((root.CurrentDoc + 8) % 16)
+	// }
 	for i := 0; i < len(leftContents); i++ {
 		leftContents[i].style = leftContents[i].style.Foreground(tcell.ColorValid + color).Reverse(true)
 	}

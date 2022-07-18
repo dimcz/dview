@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
 	"terminal/internal/config"
 	"terminal/pkg/logger"
 
@@ -36,29 +37,28 @@ type Docker struct {
 func (d *Docker) Load(out io.Writer) error {
 	d.ctx, d.cancel = context.WithCancel(context.Background())
 
+	opts := types.ContainerLogsOptions{
+		ShowStderr: true,
+		ShowStdout: true,
+		Timestamps: false,
+		Tail:       strconv.Itoa(d.cfg.Tail),
+		Follow:     false,
+	}
+
+	if err := d.download(out, opts); err != nil {
+		return err
+	}
+
 	d.wg.Add(1)
 
 	go func() {
 		defer d.wg.Done()
 
-		fd, err := d.cli.ContainerLogs(d.ctx, d.containers[d.current].ID, types.ContainerLogsOptions{
-			ShowStderr: true,
-			ShowStdout: true,
-			Timestamps: true,
-			Tail:       strconv.Itoa(d.cfg.Tail),
-			Follow:     true,
-		})
-		if err != nil {
-			d.log.Error("failed to load logs:", err)
-		}
+		opts.Tail = "0"
+		opts.Follow = true
 
-		defer func() {
-			d.log.LogOnErr(fd.Close())
-		}()
-
-		if _, err := stdcopy.StdCopy(out, out, fd); err != nil {
-			d.log.Error("failed StdCopy with err:", err)
-			return
+		if err := d.download(out, opts); err != nil {
+			d.log.Error("failed to download with: ", err)
 		}
 	}()
 
@@ -98,6 +98,21 @@ func (d *Docker) Close() {
 func (d *Docker) Stop() {
 	d.cancel()
 	d.wg.Wait()
+}
+
+func (d *Docker) download(out io.Writer, opts types.ContainerLogsOptions) error {
+	fd, err := d.cli.ContainerLogs(d.ctx, d.containers[d.current].ID, opts)
+	if err != nil {
+		d.log.Error("failed to load logs:", err)
+	}
+
+	defer func() {
+		d.log.LogOnErr(fd.Close())
+	}()
+
+	_, err = stdcopy.StdCopy(out, out, fd)
+
+	return err
 }
 
 func getContainers(cli *client.Client) (containers []Container, err error) {

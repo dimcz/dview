@@ -3,7 +3,7 @@ package oviewer
 import (
 	"context"
 	"fmt"
-	"log"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -32,6 +32,7 @@ func (root *Root) main(ctx context.Context, quitChan chan<- struct{}) {
 		root.skipDraw = false
 
 		ev := root.Screen.PollEvent()
+		root.log(reflect.TypeOf(ev))
 		switch ev := ev.(type) {
 		case *eventAppQuit:
 			if root.screenMode != Docs {
@@ -50,6 +51,8 @@ func (root *Root) main(ctx context.Context, quitChan chan<- struct{}) {
 			root.switchDocument(ev.docNum)
 		case *eventAddDocument:
 			root.addDocument(ev.m)
+		case *eventReplaceDocument:
+			root.replaceDocument(ev.m)
 		case *eventCloseDocument:
 			root.closeDocument()
 		case *eventCopySelect:
@@ -131,7 +134,7 @@ func (root *Root) Quit() {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -149,7 +152,7 @@ func (root *Root) Suspend() {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -211,7 +214,7 @@ func (root *Root) followAll() {
 	root.mu.RUnlock()
 
 	if root.CurrentDoc != current {
-		log.Printf("switch document: %d", current)
+		root.log("switch document: %d", current)
 		root.switchDocument(current)
 	}
 }
@@ -243,7 +246,7 @@ func (root *Root) eventUpdate() {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -257,7 +260,7 @@ func (root *Root) MoveLine(num int) {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -283,7 +286,7 @@ func (root *Root) eventNextSearch() {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -299,7 +302,7 @@ func (root *Root) eventNextBackSearch() {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -315,7 +318,7 @@ func (root *Root) Search(str string) {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -331,7 +334,7 @@ func (root *Root) BackSearch(str string) {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -353,7 +356,25 @@ func (root *Root) SetDocument(docNum int) {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
+	}
+}
+
+type eventReplaceDocument struct {
+	m *Document
+	tcell.EventTime
+}
+
+func (root *Root) ReplaceDocument(m *Document) {
+	if !root.checkScreen() {
+		return
+	}
+	ev := &eventReplaceDocument{}
+	ev.m = m
+	ev.SetEventNow()
+	err := root.Screen.PostEvent(ev)
+	if err != nil {
+		root.log(err)
 	}
 }
 
@@ -373,7 +394,7 @@ func (root *Root) AddDocument(m *Document) {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -391,7 +412,7 @@ func (root *Root) CloseDocument(m *Document) {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -409,7 +430,7 @@ func (root *Root) searchQuit() {
 	ev.SetEventNow()
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 
@@ -460,13 +481,13 @@ func (root *Root) Reload() {
 		return
 	}
 	root.setMessagef("reload %s", root.Doc.FileName)
-	log.Printf("reload %s", root.Doc.FileName)
+	root.log("reload %s", root.Doc.FileName)
 	ev := &eventReload{}
 	ev.SetEventNow()
 	ev.m = root.Doc
 	err := root.Screen.PostEvent(ev)
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 }
 

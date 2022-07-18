@@ -6,6 +6,7 @@ type Config struct {
 	Version bool
 	LogFile string
 	Tail    int
+	Mouse   bool
 }
 
 func Init() *Config {
@@ -13,6 +14,8 @@ func Init() *Config {
 
 	pflag.BoolVarP(&(config.Version),
 		"version", "v", false, "Print version information.")
+	pflag.BoolVarP(&(config.Mouse),
+		"mouse", "m", false, "Mouse support.")
 	pflag.StringVarP(&(config.LogFile),
 		"log", "l", "", "Send log messages to file.")
 	pflag.IntVarP(&(config.Tail),

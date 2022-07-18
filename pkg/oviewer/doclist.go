@@ -2,7 +2,6 @@ package oviewer
 
 import (
 	"fmt"
-	"log"
 	"sync/atomic"
 )
 
@@ -26,9 +25,22 @@ func (root *Root) hasDocChanged() bool {
 	return eventFlag
 }
 
+func (root *Root) replaceDocument(m *Document) {
+	root.mu.Lock()
+
+	if err := root.DocList[root.CurrentDoc].close(); err != nil {
+		root.log("%s:%s", root.Doc.FileName, err)
+	}
+
+	root.DocList = []*Document{m}
+	root.mu.Unlock()
+
+	root.setDocument(m)
+}
+
 // addDocument adds a document and displays it.
 func (root *Root) addDocument(m *Document) {
-	root.setMessagef("add %s", m.FileName)
+	// root.setMessagef("add %s", m.FileName)
 	m.general = root.Config.General
 	m.setSectionDelimiter(m.SectionDelimiter)
 
@@ -49,10 +61,10 @@ func (root *Root) closeDocument() {
 	}
 
 	root.setMessagef("close [%d]%s", root.CurrentDoc, root.Doc.FileName)
-	log.Printf("close [%d]%s", root.CurrentDoc, root.Doc.FileName)
+	root.log("close [%d]%s", root.CurrentDoc, root.Doc.FileName)
 	root.mu.Lock()
 	if err := root.DocList[root.CurrentDoc].close(); err != nil {
-		log.Printf("%s:%s", root.Doc.FileName, err)
+		root.log("%s:%s", root.Doc.FileName, err)
 	}
 	root.DocList = append(root.DocList[:root.CurrentDoc], root.DocList[root.CurrentDoc+1:]...)
 	if root.CurrentDoc > 0 {

@@ -63,7 +63,7 @@ func KeyBindString(k KeyBind) string {
 	fmt.Fprint(&b, "\n")
 	k.writeKeyBind(&b, actionNextDoc, "next document")
 	k.writeKeyBind(&b, actionPreviousDoc, "previous document")
-	k.writeKeyBind(&b, actionCloseDoc, "close current document")
+	//	k.writeKeyBind(&b, actionCloseDoc, "close current document")
 
 	fmt.Fprint(&b, gchalk.Bold("\n\tMark position\n"))
 	fmt.Fprint(&b, "\n")

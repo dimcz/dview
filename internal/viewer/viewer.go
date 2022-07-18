@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+
 	"terminal/internal/config"
 	"terminal/pkg/docker"
 	"terminal/pkg/logger"
@@ -24,10 +25,11 @@ type Viewer struct {
 	ov *oviewer.Root
 }
 
-func Init(log *logger.Logger, cfg *config.Config, dock *docker.Docker) (*Viewer, error) {
+func Init(l *logger.Logger, cfg *config.Config, dock *docker.Docker) (*Viewer, error) {
+
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Viewer{
-		log:    log,
+		log:    l,
 		cfg:    cfg,
 		ctx:    ctx,
 		cancel: cancel,
@@ -45,18 +47,7 @@ func (v *Viewer) Shutdown() {
 }
 
 func (v *Viewer) Start() error {
-	var err error
-
-	v.cache, err = ioutil.TempFile(os.TempDir(), "dlog_")
-	if err != nil {
-		return errors.Wrap(err, "failed to create temp file")
-	}
-
-	if err := v.dock.Load(v.cache); err != nil {
-		return errors.Wrap(err, "failed to load logs")
-	}
-
-	doc, err := createDocument(v.cache.Name())
+	doc, err := v.newDocument()
 	if err != nil {
 		return errors.Wrap(err, "failed to create document")
 	}
@@ -66,8 +57,11 @@ func (v *Viewer) Start() error {
 		return errors.Wrap(err, "failed to create oviewer")
 	}
 
+	v.ov.SetLog(v.log.Debug)
 	v.ov.General.FollowMode = true
 	v.ov.General.WrapMode = true
+
+	v.ov.Config.DisableMouse = !v.cfg.Mouse
 
 	if err := v.ov.SetKeyHandler("Prev container", []string{"left"}, v.PrevContainer); err != nil {
 		return errors.Wrap(err, "failed to bind left key")
@@ -85,32 +79,21 @@ func (v *Viewer) Start() error {
 }
 
 func (v *Viewer) Stop() {
+	v.log.Info("close document")
 	v.dock.Stop()
 
 	v.log.LogOnErr(v.cache.Close())
 	v.log.LogOnErr(os.Remove(v.cache.Name()))
 }
 
-func (v *Viewer) Create() error {
-	var err error
-
-	v.cache, err = ioutil.TempFile(os.TempDir(), "dlog_")
-	if err != nil {
-		return errors.Wrap(err, "failed to create temp file")
-	}
-
-	if err := v.dock.Load(v.cache); err != nil {
-		return errors.Wrap(err, "failed to load logs")
-	}
-
-	doc, err := createDocument(v.cache.Name())
+func (v *Viewer) NewDocument() error {
+	v.log.Info("create new document")
+	doc, err := v.newDocument()
 	if err != nil {
 		return errors.Wrap(err, "failed to create document")
 	}
 
-	// old := v.ov.Doc
-	v.ov.AddDocument(doc)
-	// v.ov.CloseDocument(old)
+	v.ov.ReplaceDocument(doc)
 
 	return nil
 }
@@ -120,7 +103,7 @@ func (v *Viewer) PrevContainer() {
 
 	v.dock.SetPrevContainer()
 
-	if err := v.Create(); err != nil {
+	if err := v.NewDocument(); err != nil {
 		v.log.Fatal(err)
 	}
 }
@@ -130,21 +113,29 @@ func (v *Viewer) NextContainer() {
 
 	v.dock.SetNextContainer()
 
-	if err := v.Create(); err != nil {
+	if err := v.NewDocument(); err != nil {
 		v.log.Fatal(err)
 	}
 }
 
-func createDocument(fn string) (*oviewer.Document, error) {
-	doc, err := oviewer.NewDocument()
+func (v *Viewer) newDocument() (*oviewer.Document, error) {
+	var err error
+
+	v.cache, err = ioutil.TempFile(os.TempDir(), "dlog_")
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create document")
+		return nil, errors.Wrap(err, "failed to create temp file")
 	}
 
-	if err := doc.ReadFile(fn); err != nil {
-		return nil, errors.Wrap(err, "failed reading from file")
+	if err := v.dock.Load(v.cache); err != nil {
+		return nil, errors.Wrap(err, "failed to load logs")
 	}
 
+	doc, err := oviewer.OpenDocument(v.cache.Name())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to open document")
+	}
+
+	doc.Caption = v.dock.Name()
 	doc.WrapMode = true
 	doc.FollowMode = true
 

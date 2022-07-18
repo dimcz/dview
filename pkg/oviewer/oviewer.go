@@ -100,6 +100,8 @@ type Root struct {
 
 	// cancelKeys represents the cancellation key string.
 	cancelKeys []string
+
+	log func(arv ...interface{})
 }
 
 // LineNumber is Number of logical lines and number of wrapping lines on the screen.
@@ -315,11 +317,13 @@ func NewOviewer(docs ...*Document) (*Root, error) {
 	}
 	root.Screen = screen
 
-	logDoc, err := NewLogDoc()
-	if err != nil {
-		return nil, err
-	}
-	root.logDoc = logDoc
+	// logDoc, err := NewLogDoc()
+	// if err != nil {
+	// return nil, err
+	// }
+	// root.logDoc = logDoc
+
+	root.log = log.Println
 
 	return root, nil
 }
@@ -438,6 +442,10 @@ func openFiles(fileNames []string) (*Root, error) {
 	return root, err
 }
 
+func (root *Root) SetLog(log func(argv ...interface{})) {
+	root.log = log
+}
+
 // SetConfig sets config.
 func (root *Root) SetConfig(config Config) {
 	root.Config = config
@@ -466,7 +474,7 @@ func (root *Root) SetWatcher(watcher *fsnotify.Watcher) {
 				if !ok {
 					return
 				}
-				log.Println("error:", err)
+				root.log("error:", err)
 			}
 		}
 	}()
@@ -487,7 +495,7 @@ func (root *Root) setKeyConfig() (map[string][]string, error) {
 
 	keys, ok := keyBind[actionCancel]
 	if !ok {
-		log.Printf("no cancel key")
+		root.log("no cancel key")
 	} else {
 		root.cancelKeys = keys
 	}
@@ -536,7 +544,7 @@ func (root *Root) Run() error {
 			doc.watchMode()
 			w = "(watch)"
 		}
-		log.Printf("open [%d]%s%s", n, doc.FileName, w)
+		root.log("open [%d]%s%s", n, doc.FileName, w)
 	}
 
 	root.setModeConfig()
@@ -628,7 +636,7 @@ func (root *Root) debugMessage(msg string) {
 	if len(msg) == 0 {
 		return
 	}
-	log.Printf("%s:%s", root.Doc.FileName, msg)
+	root.log("%s:%s", root.Doc.FileName, msg)
 }
 
 func ToTcellStyle(s OVStyle) tcell.Style {
@@ -740,7 +748,7 @@ func (root *Root) docSmall() bool {
 	for y := 0; y < m.BufEndNum(); y++ {
 		lc, err := m.contentsLN(y, root.Doc.TabWidth)
 		if err != nil {
-			log.Printf("docSmall %d: %s", y, err)
+			root.log("docSmall %d: %s", y, err)
 			continue
 		}
 		hight += 1 + (len(lc) / root.vWidth)

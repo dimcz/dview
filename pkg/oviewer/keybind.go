@@ -62,8 +62,8 @@ const (
 	actionNextBackSearch = "next_backsearch"
 	actionNextDoc        = "next_doc"
 	actionPreviousDoc    = "previous_doc"
-	actionCloseDoc       = "close_doc"
-	actionToggleMouse    = "toggle_mouse"
+	//	actionCloseDoc       = "close_doc"
+	actionToggleMouse = "toggle_mouse"
 
 	inputCaseSensitive = "input_casesensitive"
 	inputIncSearch     = "input_incsearch"
@@ -125,11 +125,11 @@ func (root *Root) setHandler() map[string]func() {
 		actionNextBackSearch: root.eventNextBackSearch,
 		actionNextDoc:        root.nextDoc,
 		actionPreviousDoc:    root.previousDoc,
-		actionCloseDoc:       root.closeDocument,
-		actionToggleMouse:    root.toggleMouse,
-		inputCaseSensitive:   root.inputCaseSensitive,
-		inputIncSearch:       root.inputIncSearch,
-		inputRegexpSearch:    root.inputRegexpSearch,
+		//		actionCloseDoc:       root.closeDocument,
+		actionToggleMouse:  root.toggleMouse,
+		inputCaseSensitive: root.inputCaseSensitive,
+		inputIncSearch:     root.inputIncSearch,
+		inputRegexpSearch:  root.inputRegexpSearch,
 	}
 }
 
@@ -191,9 +191,9 @@ func GetKeyBinds(bind map[string][]string) map[string][]string {
 		actionNextBackSearch: {"N"},
 		actionNextDoc:        {"]"},
 		actionPreviousDoc:    {"["},
-		actionCloseDoc:       {"ctrl+k"},
-		actionToggleMouse:    {"ctrl+alt+r"},
-		actionSuspend:        {"ctrl+z"},
+		//		actionCloseDoc:       {"ctrl+k"},
+		actionToggleMouse: {"ctrl+alt+r"},
+		actionSuspend:     {"ctrl+z"},
 
 		inputCaseSensitive: {"alt+c"},
 		inputIncSearch:     {"alt+i"},

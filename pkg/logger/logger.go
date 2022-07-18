@@ -68,6 +68,7 @@ func Init(file string) *Logger {
 	}
 
 	logger := logrus.New()
+	logger.SetLevel(logrus.DebugLevel)
 
 	logger.Formatter = &logrus.TextFormatter{
 		DisableColors: false,
