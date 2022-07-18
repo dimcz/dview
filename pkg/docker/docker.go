@@ -33,8 +33,13 @@ type Docker struct {
 	cancel func()
 }
 
-func (d *Docker) Load(out io.Writer) error {
+func (d *Docker) Load(out io.Writer) {
 	d.ctx, d.cancel = context.WithCancel(context.Background())
+
+	info, err := d.cli.ContainerInspect(d.ctx, d.containers[d.current].ID)
+	if err != nil {
+		return
+	}
 
 	opts := types.ContainerLogsOptions{
 		ShowStderr: true,
@@ -44,8 +49,8 @@ func (d *Docker) Load(out io.Writer) error {
 		Follow:     false,
 	}
 
-	if err := d.download(out, opts); err != nil {
-		return err
+	if err := d.download(info.Config.Tty, out, opts); err != nil {
+		d.log.Error(err)
 	}
 
 	d.wg.Add(1)
@@ -56,12 +61,10 @@ func (d *Docker) Load(out io.Writer) error {
 		opts.Tail = "0"
 		opts.Follow = true
 
-		if err := d.download(out, opts); err != nil {
+		if err := d.download(info.Config.Tty, out, opts); err != nil {
 			d.log.Error("failed to download with: ", err)
 		}
 	}()
-
-	return nil
 }
 
 func (d *Docker) SetNextContainer() {
@@ -101,7 +104,7 @@ func (d *Docker) Stop() {
 	d.wg.Wait()
 }
 
-func (d *Docker) download(out io.Writer, opts types.ContainerLogsOptions) error {
+func (d *Docker) download(tty bool, out io.Writer, opts types.ContainerLogsOptions) error {
 	fd, err := d.cli.ContainerLogs(d.ctx, d.containers[d.current].ID, opts)
 	if err != nil {
 		d.log.Error("failed to load logs:", err)
@@ -111,7 +114,11 @@ func (d *Docker) download(out io.Writer, opts types.ContainerLogsOptions) error 
 		d.log.LogOnErr(fd.Close())
 	}()
 
-	_, err = stdcopy.StdCopy(out, out, fd)
+	if tty {
+		_, err = io.Copy(out, fd)
+	} else {
+		_, err = stdcopy.StdCopy(out, out, fd)
+	}
 
 	return err
 }

@@ -28,11 +28,14 @@ func (root *Root) hasDocChanged() bool {
 func (root *Root) replaceDocument(m *Document) {
 	root.mu.Lock()
 
+	root.DocList = append(root.DocList, m)
+
 	if err := root.DocList[root.CurrentDoc].close(); err != nil {
 		root.log("%s:%s", root.Doc.FileName, err)
 	}
 
-	root.DocList = []*Document{m}
+	root.DocList = root.DocList[1:]
+
 	root.mu.Unlock()
 
 	root.setDocument(m)
@@ -60,7 +63,7 @@ func (root *Root) closeDocument() {
 		return
 	}
 
-	root.setMessagef("close [%d]%s", root.CurrentDoc, root.Doc.FileName)
+	root.setMessagef("close [%d]%s", root.CurrentDoc, root.Doc.Caption)
 	root.log("close [%d]%s", root.CurrentDoc, root.Doc.FileName)
 	root.mu.Lock()
 	if err := root.DocList[root.CurrentDoc].close(); err != nil {

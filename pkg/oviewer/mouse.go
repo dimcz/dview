@@ -3,7 +3,6 @@ package oviewer
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/atotto/clipboard"
@@ -106,7 +105,7 @@ func (root *Root) CopySelect() {
 	go func() {
 		err := root.Screen.PostEvent(ev)
 		if err != nil {
-			log.Println(err)
+			root.log(err)
 		}
 	}()
 }
@@ -179,7 +178,7 @@ func (root *Root) putClipboard(_ context.Context) {
 		return
 	}
 	if err := clipboard.WriteAll(buff); err != nil {
-		log.Printf("putClipboard: %v", err)
+		root.log("putClipboard: ", err)
 	}
 	root.setMessage("Copy")
 }
@@ -336,7 +335,7 @@ func (root *Root) Paste() {
 	go func() {
 		err := root.Screen.PostEvent(ev)
 		if err != nil {
-			log.Println(err)
+			root.log(err)
 		}
 	}()
 }
@@ -351,7 +350,7 @@ func (root *Root) getClipboard(_ context.Context) {
 
 	str, err := clipboard.ReadAll()
 	if err != nil {
-		log.Printf("getClipboard: %v", err)
+		root.log("getClipboard: ", err)
 		return
 	}
 

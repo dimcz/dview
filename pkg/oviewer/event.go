@@ -3,7 +3,6 @@ package oviewer
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -32,7 +31,6 @@ func (root *Root) main(ctx context.Context, quitChan chan<- struct{}) {
 		root.skipDraw = false
 
 		ev := root.Screen.PollEvent()
-		root.log(reflect.TypeOf(ev))
 		switch ev := ev.(type) {
 		case *eventAppQuit:
 			if root.screenMode != Docs {
@@ -143,7 +141,6 @@ type eventAppSuspend struct {
 	tcell.EventTime
 }
 
-// Quit executes a quit event.
 func (root *Root) Suspend() {
 	if !root.checkScreen() {
 		return
@@ -214,7 +211,7 @@ func (root *Root) followAll() {
 	root.mu.RUnlock()
 
 	if root.CurrentDoc != current {
-		root.log("switch document: %d", current)
+		root.log("switch document: ", current)
 		root.switchDocument(current)
 	}
 }
@@ -404,7 +401,7 @@ type eventCloseDocument struct {
 }
 
 // CloseDocument fires a del document event.
-func (root *Root) CloseDocument(m *Document) {
+func (root *Root) CloseDocument() {
 	if !root.checkScreen() {
 		return
 	}
@@ -480,8 +477,8 @@ func (root *Root) Reload() {
 	if !root.checkScreen() {
 		return
 	}
-	root.setMessagef("reload %s", root.Doc.FileName)
-	root.log("reload %s", root.Doc.FileName)
+	root.setMessagef(" reload")
+	root.log("reload ", root.Doc.FileName)
 	ev := &eventReload{}
 	ev.SetEventNow()
 	ev.m = root.Doc

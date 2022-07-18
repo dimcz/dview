@@ -3,7 +3,6 @@ package oviewer
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -175,7 +174,7 @@ func (root *Root) moveNumDown(moveY int) {
 			}
 			listX, err = root.leftMostX(num)
 			if err != nil {
-				log.Printf("moveNumDown: %d %s", num, err.Error())
+				root.log(fmt.Sprintf("moveNumDown: %d %s", num, err.Error()))
 				return
 			}
 			n = 0
@@ -212,7 +211,7 @@ func (root *Root) moveUp() {
 	if m.topLX > 0 {
 		listX, err := root.leftMostX(m.topLN + m.firstLine())
 		if err != nil {
-			log.Println(err)
+			root.log(err)
 			return
 		}
 		for n, x := range listX {
@@ -232,7 +231,7 @@ func (root *Root) moveUp() {
 	}
 	listX, err := root.leftMostX(m.topLN + m.firstLine())
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 		return
 	}
 	if len(listX) > 0 {
@@ -260,7 +259,7 @@ func (root *Root) moveDown() {
 	// WrapMode
 	listX, err := root.leftMostX(m.topLN + m.firstLine())
 	if err != nil {
-		log.Println(err)
+		root.log(err)
 		return
 	}
 
@@ -333,7 +332,7 @@ func (root *Root) lastSection() {
 	defer ctx.Done()
 	n, err := m.BackSearchLine(ctx, searcher, num)
 	if err != nil {
-		log.Printf("last section:%v", err)
+		root.log("last section: ", err)
 		return
 	}
 	n = (n - root.Doc.firstLine()) + root.Doc.SectionStartPosition
@@ -494,7 +493,7 @@ func (root *Root) findNumUp(lX int, lN int, upY int) (int, int) {
 			}
 			listX, err = root.leftMostX(lN)
 			if err != nil {
-				log.Println(err, "findNumUp", lN)
+				root.log(err, "findNumUp", lN)
 				return 0, 0
 			}
 			n = len(listX)

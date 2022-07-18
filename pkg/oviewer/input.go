@@ -2,7 +2,6 @@ package oviewer
 
 import (
 	"context"
-	"log"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
@@ -74,7 +73,7 @@ func (root *Root) inputEvent(ctx context.Context, ev *tcell.EventKey) {
 	input := root.input
 	nev := input.EventInput.Confirm(input.value)
 	if err := root.Screen.PostEvent(nev); err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 
 	input.mode = Normal

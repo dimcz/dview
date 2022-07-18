@@ -482,7 +482,7 @@ func (root *Root) SetWatcher(watcher *fsnotify.Watcher) {
 	for _, doc := range root.DocList {
 		err := watcher.Add(doc.FileName)
 		if err != nil {
-			root.debugMessage(fmt.Sprintf("watcher %s:%s", doc.FileName, err))
+			root.debugMessage(fmt.Sprintf("watcher %s:%s", doc.Caption, err))
 		}
 	}
 }
@@ -544,7 +544,7 @@ func (root *Root) Run() error {
 			doc.watchMode()
 			w = "(watch)"
 		}
-		root.log("open [%d]%s%s", n, doc.FileName, w)
+		root.log(fmt.Sprintf("open [%d]%s%s", n, doc.Caption, w))
 	}
 
 	root.setModeConfig()
@@ -636,7 +636,7 @@ func (root *Root) debugMessage(msg string) {
 	if len(msg) == 0 {
 		return
 	}
-	root.log("%s:%s", root.Doc.FileName, msg)
+	root.log(fmt.Sprintf("%s:%s", root.Doc.FileName, msg))
 }
 
 func ToTcellStyle(s OVStyle) tcell.Style {
@@ -748,7 +748,7 @@ func (root *Root) docSmall() bool {
 	for y := 0; y < m.BufEndNum(); y++ {
 		lc, err := m.contentsLN(y, root.Doc.TabWidth)
 		if err != nil {
-			root.log("docSmall %d: %s", y, err)
+			root.log(fmt.Sprintf("docSmall %d: %s", y, err))
 			continue
 		}
 		hight += 1 + (len(lc) / root.vWidth)

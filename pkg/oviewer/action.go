@@ -2,7 +2,6 @@ package oviewer
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -66,21 +65,21 @@ func (root *Root) closeFile() {
 		return
 	}
 	if err := root.Doc.close(); err != nil {
-		log.Printf("closeFile: %s", err)
+		root.log("closeFile: ", err)
 	}
-	root.setMessagef("close file %s", root.Doc.FileName)
-	log.Printf("close file %s", root.Doc.FileName)
+	root.setMessagef("close %s", root.Doc.Caption)
+	root.log("close file ", root.Doc.FileName)
 }
 
 // reload reload a current document.
 func (root *Root) reload(m *Document) {
 	if m.preventReload {
-		root.setMessagef("cannot reload: %s", m.FileName)
+		root.setMessagef("cannot reload: %s", m.Caption)
 		return
 	}
 
 	if err := m.reload(); err != nil {
-		log.Printf("cannot reload: %s", err)
+		root.log("cannot reload: ", err)
 		return
 	}
 	root.releaseEventBuffer()
@@ -105,10 +104,10 @@ func (root *Root) watchStart() {
 	m := root.Doc
 	m.WatchInterval = max(m.WatchInterval, 1)
 	if m.ticker != nil {
-		log.Println("watch stop")
+		root.log("watch stop")
 		m.ticker.Stop()
 	}
-	log.Printf("watch start at interval %d", m.WatchInterval)
+	root.log("watch start at interval ", m.WatchInterval)
 	m.ticker = time.NewTicker(time.Duration(m.WatchInterval) * time.Second)
 	go func() {
 		for {
@@ -118,10 +117,10 @@ func (root *Root) watchStart() {
 				ev.SetEventNow()
 				ev.m = m
 				if err := root.Screen.PostEvent(ev); err != nil {
-					log.Println(err)
+					root.log(err)
 				}
 			} else {
-				log.Println("watch stop")
+				root.log("watch stop")
 				m.ticker.Stop()
 				return
 			}
@@ -261,15 +260,16 @@ func (root *Root) setSkipLines(input string) {
 // suspend suspends the current screen display and runs the shell.
 // It will return when you exit the shell.
 func (root *Root) suspend() {
-	log.Println("Suspend")
+	root.log("Suspend")
 	if err := root.Screen.Suspend(); err != nil {
-		log.Println(err)
+		root.log(err)
 		return
 	}
 	fmt.Println("suspended ov")
 	shell := os.Getenv("SHELL")
 	if shell == "" {
-		if runtime.GOOS == "windows" {
+		if //goland:noinspection GoBoolExpressions
+		runtime.GOOS == "windows" {
 			shell = "CMD.EXE"
 		} else {
 			shell = "/bin/sh"
@@ -280,13 +280,13 @@ func (root *Root) suspend() {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	if err := c.Run(); err != nil {
-		log.Println(err)
+		root.log(err)
 	}
 	fmt.Println("resume ov")
 	if err := root.Screen.Resume(); err != nil {
-		log.Println(err)
+		root.log(err)
 	}
-	log.Println("Resume")
+	root.log("Resume")
 }
 
 // toggleMouse toggles mouse control.

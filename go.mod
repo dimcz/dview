@@ -3,6 +3,7 @@ module github.com/dimcz/viewer
 go 1.18
 
 require (
+	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
 	code.rocketnine.space/tslocum/cbind v0.1.5
 	github.com/atotto/clipboard v0.1.4
 	github.com/dgraph-io/ristretto v0.1.0

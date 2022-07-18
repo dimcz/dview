@@ -4,7 +4,9 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"runtime"
 
+	"code.cloudfoundry.org/bytefmt"
 	"github.com/dimcz/viewer/internal/config"
 	"github.com/dimcz/viewer/pkg/docker"
 	"github.com/dimcz/viewer/pkg/logger"
@@ -57,9 +59,8 @@ func (v *Viewer) Start() error {
 	}
 
 	v.ov.SetLog(v.log.Debug)
-	v.ov.General.FollowMode = true
+	v.ov.General.FollowAll = true
 	v.ov.General.WrapMode = true
-
 	v.ov.Config.DisableMouse = !v.cfg.Mouse
 
 	if err := v.ov.SetKeyHandler("Prev container", []string{"left"}, v.PrevContainer); err != nil {
@@ -67,6 +68,10 @@ func (v *Viewer) Start() error {
 	}
 
 	if err := v.ov.SetKeyHandler("Next container", []string{"right"}, v.NextContainer); err != nil {
+		return errors.Wrap(err, "failed to bind left key")
+	}
+
+	if err := v.ov.SetKeyHandler("System report", []string{"s"}, v.systemReport); err != nil {
 		return errors.Wrap(err, "failed to bind left key")
 	}
 
@@ -126,9 +131,7 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 		return nil, errors.Wrap(err, "failed to create temp file")
 	}
 
-	if err := v.dock.Load(v.cache); err != nil {
-		return nil, errors.Wrap(err, "failed to load logs")
-	}
+	v.dock.Load(v.cache)
 
 	doc, err := oviewer.OpenDocument(v.cache.Name())
 	if err != nil {
@@ -137,7 +140,20 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 
 	doc.Caption = v.dock.Name()
 	doc.WrapMode = true
-	doc.FollowMode = true
+	doc.FollowAll = true
 
 	return doc, nil
+}
+
+func (v *Viewer) systemReport() {
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	v.log.Debug("systemReport -->")
+	v.log.Debug("Total alloc ", bytefmt.ByteSize(mem.TotalAlloc))
+	v.log.Debug("Sys ", bytefmt.ByteSize(mem.Sys))
+	v.log.Debug("Heap alloc ", bytefmt.ByteSize(mem.HeapAlloc))
+	v.log.Debug("Heap sys ", bytefmt.ByteSize(mem.HeapSys))
+	v.log.Debug("Goroutines num ", runtime.NumGoroutine())
+	v.log.Debug("systemReport <--")
+	runtime.GC()
 }

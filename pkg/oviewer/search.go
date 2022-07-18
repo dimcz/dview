@@ -280,7 +280,7 @@ func (root *Root) incSearch(ctx context.Context, forward bool) {
 		root.searchQuit()
 		if err != nil {
 			if !errors.Is(err, context.Canceled) {
-				log.Println(err)
+				root.log(err)
 			}
 			return
 		}
