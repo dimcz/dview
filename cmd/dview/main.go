@@ -27,7 +27,7 @@ func main() {
 
 	client, err := docker.Client(log, cfg)
 	if err != nil {
-		log.Error(err)
+		fmt.Println(err)
 
 		return
 	}
@@ -36,7 +36,7 @@ func main() {
 
 	v, err := viewer.Init(log, cfg, client)
 	if err != nil {
-		log.Error(err)
+		fmt.Println(err)
 
 		return
 	}
@@ -44,7 +44,7 @@ func main() {
 	defer v.Shutdown()
 
 	if err := v.Start(); err != nil {
-		log.Error(err)
+		fmt.Println(err)
 
 		return
 	}
