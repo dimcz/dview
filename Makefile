@@ -9,8 +9,8 @@ PLATFORM = $(subst /, ,$@)
 OS = $(word 1, $(PLATFORM))
 ARCH = $(word 2, $(PLATFORM))
 
-EXENAME=dlog
-CMDSOURCES = $(wildcard cmd/dlog/*.go)
+EXENAME=dview
+CMDSOURCES = $(wildcard cmd/dview/*.go)
 GOBUILD=$(GO) build
 
 .PHONY: makedir build test clean prepare default all $(PLATFORMS)
