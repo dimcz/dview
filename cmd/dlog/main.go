@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 
-	"terminal/internal/viewer"
-	"terminal/pkg/docker"
-
-	"terminal/internal/config"
-	"terminal/pkg/logger"
+	"github.com/dimcz/viewer/internal/config"
+	"github.com/dimcz/viewer/internal/viewer"
+	"github.com/dimcz/viewer/pkg/docker"
+	"github.com/dimcz/viewer/pkg/logger"
 )
 
 const VERSION = "1.0.0"

@@ -8,9 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"terminal/internal/config"
-	"terminal/pkg/logger"
-
+	"github.com/dimcz/viewer/internal/config"
+	"github.com/dimcz/viewer/pkg/logger"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"

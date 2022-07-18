@@ -5,11 +5,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	"terminal/internal/config"
-	"terminal/pkg/docker"
-	"terminal/pkg/logger"
-	"terminal/pkg/oviewer"
-
+	"github.com/dimcz/viewer/internal/config"
+	"github.com/dimcz/viewer/pkg/docker"
+	"github.com/dimcz/viewer/pkg/logger"
+	"github.com/dimcz/viewer/pkg/oviewer"
 	"github.com/pkg/errors"
 )
 
