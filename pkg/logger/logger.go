@@ -39,7 +39,19 @@ func (l *Logger) Error(args ...interface{}) {
 	}
 }
 
+func (l *Logger) Fatal(args ...interface{}) {
+	if l.log != nil {
+		l.log.Fatal(args...)
+	}
+
+	log.Fatal(args...)
+}
+
 func (l *Logger) Close() {
+	if l.fd == nil {
+		return
+	}
+
 	if err := l.fd.Close(); err != nil {
 		log.Println("failed to close file:", err)
 	}
