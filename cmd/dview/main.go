@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	_ "net/http/pprof"
 
 	"github.com/dimcz/viewer/internal/config"
 	"github.com/dimcz/viewer/internal/viewer"
