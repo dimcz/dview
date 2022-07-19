@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -61,7 +60,7 @@ func (m *Document) waitEOF() {
 	<-m.eofCh
 	if m.seekable {
 		if err := m.close(); err != nil {
-			log.Printf("EOF: %s", err)
+			m.log("EOF: ", err)
 		}
 	}
 	atomic.StoreInt32(&m.changed, 1)
@@ -94,7 +93,7 @@ func (m *Document) ReadAll(r io.Reader) error {
 				atomic.StoreInt32(&m.eof, 1)
 				return
 			}
-			log.Printf("error: %v\n", err)
+			m.log("error: ", err)
 			atomic.StoreInt32(&m.eof, 0)
 			return
 		}
@@ -128,19 +127,24 @@ func (m *Document) onceFollowMode() {
 func (m *Document) startFollowMode(ctx context.Context, cancel context.CancelFunc) {
 	defer cancel()
 	<-m.followCh
+	m.log("startFollowMode(1) ", m.Caption)
 	if m.seekable {
 		// Wait for the file to open until it changes.
+		m.log("startFollowMode(2) ", m.Caption)
 		select {
 		case <-ctx.Done():
+			m.log("startFollowMode(4) ", m.Caption)
 			return
 		case <-m.changCh:
 		}
+		m.log("startFollowMode(5) ", m.Caption)
 		m.file = m.openFollowFile()
 	}
 
+	m.log("startFollowMode(3) ", m.Caption)
 	r := compressedFormatReader(m.CFormat, m.file)
 	if err := m.ContinueReadAll(ctx, r); err != nil {
-		log.Printf("%s follow mode read %v", m.FileName, err)
+		m.log(fmt.Sprintf("%s follow mode read %v", m.FileName, err))
 	}
 }
 
@@ -150,13 +154,13 @@ func (m *Document) openFollowFile() *os.File {
 	defer m.mu.Unlock()
 	r, err := os.Open(m.FileName)
 	if err != nil {
-		log.Printf("openFollowFile: %s", err)
+		m.log("openFollowFile: ", err)
 		return m.file
 	}
 	atomic.StoreInt32(&m.closed, 0)
 	atomic.StoreInt32(&m.eof, 0)
 	if _, err := r.Seek(m.offset, io.SeekStart); err != nil {
-		log.Printf("openFollowMode: %s", err)
+		m.log("openFollowMode: ", err)
 	}
 	return r
 }
@@ -266,7 +270,7 @@ func (m *Document) reload() error {
 		}
 		if !m.checkClose() && m.file != nil {
 			if err := m.close(); err != nil {
-				log.Println(err)
+				m.log(err)
 			}
 		}
 	}

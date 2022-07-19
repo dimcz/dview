@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -96,6 +97,8 @@ type Document struct {
 
 	// mu controls the mutex.
 	mu sync.Mutex
+
+	log func(arv ...interface{})
 }
 
 // NewDocument returns Document.
@@ -113,6 +116,7 @@ func NewDocument() (*Document, error) {
 		lastContentsNum: -1,
 		seekable:        true,
 		preventReload:   false,
+		log:             log.Println,
 	}
 
 	if err := m.NewCache(); err != nil {
@@ -162,6 +166,10 @@ func STDINDocument() (*Document, error) {
 	return m, nil
 }
 
+func (m *Document) SetLog(log func(argv ...interface{})) {
+	m.log = log
+}
+
 // GetLine returns one line from buffer.
 func (m *Document) GetLine(n int) string {
 	m.mu.Lock()
@@ -184,7 +192,7 @@ func (m *Document) Export(w io.Writer, start int, end int) {
 		if n >= m.BufEndNum() {
 			break
 		}
-		fmt.Fprintln(w, m.GetLine(n))
+		_, _ = fmt.Fprintln(w, m.GetLine(n))
 	}
 }
 

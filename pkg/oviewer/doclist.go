@@ -37,6 +37,13 @@ func (root *Root) replaceDocument(m *Document) {
 	root.DocList = root.DocList[1:]
 	root.mu.Unlock()
 
+	if err := root.watcher.Remove(root.Doc.FileName); err != nil {
+		root.debugMessage(fmt.Sprintf("watcher %s:%s", root.Doc.Caption, err))
+	}
+
+	if err := root.watcher.Add(m.FileName); err != nil {
+		root.debugMessage(fmt.Sprintf("watcher %s:%s", m.Caption, err))
+	}
 	root.setDocument(m)
 }
 

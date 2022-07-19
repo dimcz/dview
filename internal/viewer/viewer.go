@@ -85,8 +85,8 @@ func (v *Viewer) Start() error {
 func (v *Viewer) Stop() {
 	v.dock.Stop()
 
-	//	v.log.LogOnErr(v.cache.Close())
-	//	v.log.LogOnErr(os.Remove(v.cache.Name()))
+	v.log.LogOnErr(v.cache.Close())
+	v.log.LogOnErr(os.Remove(v.cache.Name()))
 }
 
 func (v *Viewer) NewDocument() error {
@@ -137,6 +137,7 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 	}
 
 	doc.Caption = v.dock.Name()
+	doc.SetLog(v.log.Debug)
 
 	return doc, nil
 }

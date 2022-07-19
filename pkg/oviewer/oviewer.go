@@ -101,7 +101,8 @@ type Root struct {
 	// cancelKeys represents the cancellation key string.
 	cancelKeys []string
 
-	log func(arv ...interface{})
+	log     func(arv ...interface{})
+	watcher *fsnotify.Watcher
 }
 
 // LineNumber is Number of logical lines and number of wrapping lines on the screen.
@@ -417,12 +418,12 @@ func openFile(fileName string) (*Root, error) {
 // openFiles opens multiple files and creates root.
 // It will continue even if there are files that fail to open.
 func openFiles(fileNames []string) (*Root, error) {
-	errors := make([]string, 0)
+	errorsList := make([]string, 0)
 	docList := make([]*Document, 0)
 	for _, fileName := range fileNames {
 		m, err := OpenDocument(fileName)
 		if err != nil {
-			errors = append(errors, fmt.Sprintf("open error: %s", err))
+			errorsList = append(errorsList, fmt.Sprintf("open error: %s", err))
 			continue
 		}
 		docList = append(docList, m)
@@ -436,7 +437,7 @@ func openFiles(fileNames []string) (*Root, error) {
 		return nil, err
 	}
 
-	for _, e := range errors {
+	for _, e := range errorsList {
 		log.Println(e)
 	}
 	return root, err
@@ -485,6 +486,8 @@ func (root *Root) SetWatcher(watcher *fsnotify.Watcher) {
 			root.debugMessage(fmt.Sprintf("watcher %s:%s", doc.Caption, err))
 		}
 	}
+
+	root.watcher = watcher
 }
 
 func (root *Root) setKeyConfig() (map[string][]string, error) {
@@ -515,7 +518,9 @@ func (root *Root) Run() error {
 	if err != nil {
 		return err
 	}
-	defer watcher.Close()
+	defer func(watcher *fsnotify.Watcher) {
+		_ = watcher.Close()
+	}(watcher)
 	root.SetWatcher(watcher)
 
 	// Do not set the key bindings in NewOviewer
