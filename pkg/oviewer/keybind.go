@@ -60,8 +60,8 @@ const (
 	actionGoLine         = "goto"
 	actionNextSearch     = "next_search"
 	actionNextBackSearch = "next_backsearch"
-	actionNextDoc        = "next_doc"
-	actionPreviousDoc    = "previous_doc"
+	// actionNextDoc        = "next_doc"
+	// actionPreviousDoc    = "previous_doc"
 	//	actionCloseDoc       = "close_doc"
 	actionToggleMouse = "toggle_mouse"
 
@@ -123,9 +123,9 @@ func (root *Root) setHandler() map[string]func() {
 		actionGoLine:         root.setGoLineMode,
 		actionNextSearch:     root.eventNextSearch,
 		actionNextBackSearch: root.eventNextBackSearch,
-		actionNextDoc:        root.nextDoc,
-		actionPreviousDoc:    root.previousDoc,
-		//		actionCloseDoc:       root.closeDocument,
+		// actionNextDoc:        root.nextDoc,
+		// actionPreviousDoc:    root.previousDoc,
+		// actionCloseDoc:       root.closeDocument,
 		actionToggleMouse:  root.toggleMouse,
 		inputCaseSensitive: root.inputCaseSensitive,
 		inputIncSearch:     root.inputIncSearch,
@@ -189,9 +189,9 @@ func GetKeyBinds(bind map[string][]string) map[string][]string {
 		actionGoLine:         {"g"},
 		actionNextSearch:     {"n"},
 		actionNextBackSearch: {"N"},
-		actionNextDoc:        {"]"},
-		actionPreviousDoc:    {"["},
-		//		actionCloseDoc:       {"ctrl+k"},
+		// actionNextDoc:        {"]"},
+		// actionPreviousDoc:    {"["},
+		// actionCloseDoc:       {"ctrl+k"},
 		actionToggleMouse: {"ctrl+alt+r"},
 		actionSuspend:     {"ctrl+z"},
 
