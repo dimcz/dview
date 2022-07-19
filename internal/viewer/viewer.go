@@ -129,7 +129,7 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 		return nil, errors.Wrap(err, "failed to create temp file")
 	}
 
-	v.dock.Load(v.cache)
+	v.dock.Load(v.ctx, v.cache)
 
 	doc, err := oviewer.OpenDocument(v.cache.Name())
 	if err != nil {
@@ -144,6 +144,7 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 
 func (v *Viewer) systemReport() {
 	var mem runtime.MemStats
+
 	runtime.ReadMemStats(&mem)
 	v.log.Debug("systemReport -->")
 	v.log.Debug("Total alloc ", bytefmt.ByteSize(mem.TotalAlloc))

@@ -45,7 +45,5 @@ func main() {
 
 	if err := v.Start(); err != nil {
 		fmt.Println(err)
-
-		return
 	}
 }

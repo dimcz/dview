@@ -15,7 +15,7 @@ func Init() *Config {
 	pflag.BoolVarP(&(config.Version),
 		"version", "v", false, "Print version information.")
 	pflag.BoolVarP(&(config.Mouse),
-		"mouse", "m", false, "Mouse support.")
+		"disable-mouse", "m", false, "Disable mouse support.")
 	pflag.StringVarP(&(config.LogFile),
 		"log", "l", "", "Send log messages to file.")
 	pflag.IntVarP(&(config.Tail),

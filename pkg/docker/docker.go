@@ -31,8 +31,8 @@ type Docker struct {
 	cancel func()
 }
 
-func (d *Docker) Load(out io.Writer) {
-	d.ctx, d.cancel = context.WithCancel(context.Background())
+func (d *Docker) Load(ctx context.Context, out io.Writer) {
+	d.ctx, d.cancel = context.WithCancel(ctx)
 
 	info, err := d.cli.ContainerInspect(d.ctx, d.containers[d.current].ID)
 	if err != nil {
@@ -51,6 +51,7 @@ func (d *Docker) Load(out io.Writer) {
 
 	opts.Tail = "0"
 	opts.Follow = true
+
 	go d.download(info.Config.Tty, out, opts)
 }
 
