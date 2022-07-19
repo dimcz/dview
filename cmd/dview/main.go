@@ -18,10 +18,10 @@ func main() {
 	log := logger.Init(cfg.LogFile)
 	defer log.Close()
 
-	log.Info("Start DLOG version ", VERSION)
+	log.Info("Start DVIEW version ", VERSION)
 
 	if cfg.Version {
-		fmt.Println("Dlog version", VERSION)
+		fmt.Println("DView version", VERSION)
 
 		return
 	}

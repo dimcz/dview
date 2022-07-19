@@ -313,16 +313,16 @@ func (root *Root) normalLeftStatus() (contents, int) {
 
 	modeStatus := ""
 	if root.Doc.FollowMode {
-		modeStatus = "(Follow Mode)"
+		modeStatus = "(Follow Mode) "
 	}
 	if root.General.FollowAll {
-		modeStatus = "(Follow All)"
+		modeStatus = "(Follow All) "
 	}
 	// Watch mode doubles as FollowSection mode.
 	if root.Doc.WatchMode {
-		modeStatus += "(Watch)"
+		modeStatus += "(Watch) "
 	} else if root.Doc.FollowSection {
-		modeStatus = "(Follow Section)"
+		modeStatus = "(Follow Section) "
 	}
 	caption := root.Doc.FileName
 	if root.Doc.Caption != "" {
