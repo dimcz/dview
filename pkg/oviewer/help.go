@@ -15,7 +15,7 @@ func NewHelp(k KeyBind) (*Document, error) {
 		return nil, err
 	}
 
-	m.append("\t\t\t" + gchalk.WithUnderline().Bold("ov help"))
+	m.append("\t\t\t" + gchalk.WithUnderline().Bold("dview/ov help"))
 
 	str := strings.Split(KeyBindString(k), "\n")
 	m.append(str...)
@@ -27,6 +27,7 @@ func NewHelp(k KeyBind) (*Document, error) {
 }
 
 // KeyBindString returns keybind as a string for help.
+//goland:noinspection GoUnhandledErrorResult
 func KeyBindString(k KeyBind) string {
 	var b strings.Builder
 	fmt.Fprint(&b, gchalk.Bold("\n\tKey binding\n"))
@@ -43,6 +44,12 @@ func KeyBindString(k KeyBind) string {
 	k.writeKeyBind(&b, actionFollowAll, "follow all mode toggle")
 	k.writeKeyBind(&b, actionToggleMouse, "enable/disable mouse")
 
+	fmt.Fprint(&b, gchalk.Bold("\n\tDocker\n"))
+	fmt.Fprint(&b, "\n")
+	k.writeKeyBind(&b, "left", "previous container")
+	k.writeKeyBind(&b, "right", "next container")
+	k.writeKeyBind(&b, "ctrl+u", "retrieve all logs for current container")
+
 	fmt.Fprint(&b, gchalk.Bold("\n\tMoving\n"))
 	fmt.Fprint(&b, "\n")
 	k.writeKeyBind(&b, actionMoveDown, "forward by one line")
@@ -53,17 +60,17 @@ func KeyBindString(k KeyBind) string {
 	k.writeKeyBind(&b, actionMovePgUp, "backward by page")
 	k.writeKeyBind(&b, actionMoveHfDn, "forward a half page")
 	k.writeKeyBind(&b, actionMoveHfUp, "backward a half page")
-	// k.writeKeyBind(&b, actionMoveLeft, "scroll to left")
-	// k.writeKeyBind(&b, actionMoveRight, "scroll to right")
 	k.writeKeyBind(&b, actionMoveHfLeft, "scroll left half screen")
 	k.writeKeyBind(&b, actionMoveHfRight, "scroll right half screen")
 	k.writeKeyBind(&b, actionGoLine, "go to line(input number)")
 
-	fmt.Fprint(&b, gchalk.Bold("\n\tMove document\n"))
-	fmt.Fprint(&b, "\n")
-	k.writeKeyBind(&b, actionNextDoc, "next document")
-	k.writeKeyBind(&b, actionPreviousDoc, "previous document")
-	//	k.writeKeyBind(&b, actionCloseDoc, "close current document")
+	/*
+		fmt.Fprint(&b, gchalk.Bold("\n\tMove document\n"))
+		fmt.Fprint(&b, "\n")
+		k.writeKeyBind(&b, actionNextDoc, "next document")
+		k.writeKeyBind(&b, actionPreviousDoc, "previous document")
+		//	k.writeKeyBind(&b, actionCloseDoc, "close current document")
+	*/
 
 	fmt.Fprint(&b, gchalk.Bold("\n\tMark position\n"))
 	fmt.Fprint(&b, "\n")
@@ -119,6 +126,10 @@ func KeyBindString(k KeyBind) string {
 	return b.String()
 }
 
+//goland:noinspection GoUnhandledErrorResult
 func (k KeyBind) writeKeyBind(w io.Writer, action string, detail string) {
-	fmt.Fprintf(w, " %-28s * %s\n", "["+strings.Join(k[action], "], [")+"]", detail)
+	if v, ok := k[action]; ok {
+		action = strings.Join(v, "], [")
+	}
+	fmt.Fprintf(w, " %-28s * %s\n", "["+action+"]", detail)
 }
