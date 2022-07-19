@@ -318,11 +318,11 @@ func NewOviewer(docs ...*Document) (*Root, error) {
 	}
 	root.Screen = screen
 
-	// logDoc, err := NewLogDoc()
-	// if err != nil {
-	// return nil, err
-	// }
-	// root.logDoc = logDoc
+	logDoc, err := NewLogDoc()
+	if err != nil {
+		return nil, err
+	}
+	root.logDoc = logDoc
 
 	root.log = log.Println
 

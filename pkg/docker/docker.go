@@ -6,6 +6,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dimcz/viewer/internal/config"
 	"github.com/dimcz/viewer/pkg/logger"
@@ -29,6 +30,25 @@ type Docker struct {
 
 	ctx    context.Context
 	cancel func()
+}
+
+func (d *Docker) LoadAll(ctx context.Context, out io.Writer) {
+	d.ctx, d.cancel = context.WithCancel(ctx)
+
+	info, err := d.cli.ContainerInspect(d.ctx, d.containers[d.current].ID)
+	if err != nil {
+		return
+	}
+
+	opts := types.ContainerLogsOptions{
+		ShowStderr: true,
+		ShowStdout: true,
+		Timestamps: false,
+		Follow:     true,
+	}
+
+	go d.download(info.Config.Tty, out, opts)
+	time.Sleep(100 * time.Millisecond)
 }
 
 func (d *Docker) Load(ctx context.Context, out io.Writer) {

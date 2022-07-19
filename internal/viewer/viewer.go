@@ -63,16 +63,20 @@ func (v *Viewer) Start() error {
 	v.ov.General.WrapMode = true
 	v.ov.Config.DisableMouse = !v.cfg.Mouse
 
-	if err := v.ov.SetKeyHandler("Prev container", []string{"left"}, v.PrevContainer); err != nil {
+	if err := v.ov.SetKeyHandler("prevContainer", []string{"left"}, v.PrevContainer); err != nil {
 		return errors.Wrap(err, "failed to bind left key")
 	}
 
-	if err := v.ov.SetKeyHandler("Next container", []string{"right"}, v.NextContainer); err != nil {
-		return errors.Wrap(err, "failed to bind left key")
+	if err := v.ov.SetKeyHandler("nextContainer", []string{"right"}, v.NextContainer); err != nil {
+		return errors.Wrap(err, "failed to bind right key")
 	}
 
-	if err := v.ov.SetKeyHandler("System report", []string{"s"}, v.systemReport); err != nil {
-		return errors.Wrap(err, "failed to bind left key")
+	if err := v.ov.SetKeyHandler("systemReport", []string{"s"}, v.systemReport); err != nil {
+		return errors.Wrap(err, "failed to bind s key")
+	}
+
+	if err := v.ov.SetKeyHandler("allLogs", []string{"ctrl+y"}, v.retrieveAllLogs); err != nil {
+		return errors.Wrap(err, "failed to bind s key")
 	}
 
 	if err := v.ov.Run(); err != nil {
@@ -154,4 +158,27 @@ func (v *Viewer) systemReport() {
 	v.log.Debug("Goroutines num ", runtime.NumGoroutine())
 	v.log.Debug("systemReport <--")
 	runtime.GC()
+}
+
+func (v *Viewer) retrieveAllLogs() {
+	v.Stop()
+
+	var err error
+
+	v.cache, err = ioutil.TempFile(os.TempDir(), "dlog_")
+	if err != nil {
+		v.log.Fatal(err)
+	}
+
+	v.dock.LoadAll(v.ctx, v.cache)
+
+	doc, err := oviewer.OpenDocument(v.cache.Name())
+	if err != nil {
+		v.log.Fatal(err)
+	}
+
+	doc.Caption = v.dock.Name()
+	doc.SetLog(v.log.Debug)
+
+	v.ov.ReplaceDocument(doc)
 }
