@@ -61,7 +61,6 @@ func (v *Viewer) Start() error {
 	v.ov.SetLog(v.log.Debug)
 	v.ov.General.FollowMode = true
 	v.ov.General.WrapMode = true
-	v.ov.Config.DisableMouse = !v.cfg.Mouse
 
 	if err := v.ov.SetKeyHandler("prevContainer", []string{"left"}, v.PrevContainer); err != nil {
 		return errors.Wrap(err, "failed to bind left key")
@@ -133,7 +132,7 @@ func (v *Viewer) newDocument() (*oviewer.Document, error) {
 		return nil, errors.Wrap(err, "failed to create temp file")
 	}
 
-	v.dock.Load(v.ctx, v.cache)
+	v.dock.Load(v.ctx, v.cache, v.cfg.Tail)
 
 	doc, err := oviewer.OpenDocument(v.cache.Name())
 	if err != nil {
@@ -170,7 +169,7 @@ func (v *Viewer) retrieveAllLogs() {
 		v.log.Fatal(err)
 	}
 
-	v.dock.LoadAll(v.ctx, v.cache)
+	v.dock.Load(v.ctx, v.cache, 0)
 
 	doc, err := oviewer.OpenDocument(v.cache.Name())
 	if err != nil {

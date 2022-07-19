@@ -32,7 +32,7 @@ type Docker struct {
 	cancel func()
 }
 
-func (d *Docker) LoadAll(ctx context.Context, out io.Writer) {
+func (d *Docker) Load(ctx context.Context, out io.Writer, tail int) {
 	d.ctx, d.cancel = context.WithCancel(ctx)
 
 	info, err := d.cli.ContainerInspect(d.ctx, d.containers[d.current].ID)
@@ -43,36 +43,16 @@ func (d *Docker) LoadAll(ctx context.Context, out io.Writer) {
 	opts := types.ContainerLogsOptions{
 		ShowStderr: true,
 		ShowStdout: true,
-		Timestamps: false,
+		Timestamps: d.cfg.Timestamp,
 		Follow:     true,
+	}
+
+	if tail > 0 {
+		opts.Tail = strconv.Itoa(tail)
 	}
 
 	go d.download(info.Config.Tty, out, opts)
 	time.Sleep(100 * time.Millisecond)
-}
-
-func (d *Docker) Load(ctx context.Context, out io.Writer) {
-	d.ctx, d.cancel = context.WithCancel(ctx)
-
-	info, err := d.cli.ContainerInspect(d.ctx, d.containers[d.current].ID)
-	if err != nil {
-		return
-	}
-
-	opts := types.ContainerLogsOptions{
-		ShowStderr: true,
-		ShowStdout: true,
-		Timestamps: false,
-		Tail:       strconv.Itoa(d.cfg.Tail),
-		Follow:     false,
-	}
-
-	d.download(info.Config.Tty, out, opts)
-
-	opts.Tail = "0"
-	opts.Follow = true
-
-	go d.download(info.Config.Tty, out, opts)
 }
 
 func (d *Docker) SetNextContainer() {
