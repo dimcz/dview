@@ -9,7 +9,7 @@ import (
 	"github.com/dimcz/viewer/pkg/logger"
 )
 
-const VERSION = "0.0.4"
+const VERSION = "0.0.7"
 
 func main() {
 	cfg := config.Init()
