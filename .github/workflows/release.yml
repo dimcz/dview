@@ -3,7 +3,7 @@ name: Release GO binaries
 on:
   push:
     branches:
-      - 'main'
+      - 'master'
 
 jobs:
   releases-matrix:
