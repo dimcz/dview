@@ -6,20 +6,27 @@ on:
       - 'master'
 
 jobs:
-  releases-matrix:
-    name: Release GO binaries
+  build:
+    name: Go build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux]
-        goarch: [amd64]
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: wangyoucao577/go-release-action@v1.19
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
         with:
-          github_token: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          project_path: "./cmd/dview"
-          binary_name: "dview"
-          ldflags: "-s -w"
+          fetch-depth: 0
+
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+        id: go
+
+      - name: Run Releaser
+        uses: goreleaser/goreleaser-action@master
+        with:
+          version: latest
+          args: release --rm-dist
+          workdir: ./cmd/dview
+        env:
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
