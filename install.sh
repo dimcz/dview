@@ -5,23 +5,90 @@ main() {
     set -x
   fi
 
+  ALL_FLAGS=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -*)
+        ALL_FLAGS="${ALL_FLAGS} $1"
+        ;;
+    esac
+
+    case "$1" in
+      --prefix)
+        STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
+        shift
+        ;;
+      --prefix=*)
+        STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
+        ;;
+      --version)
+        VERSION="$(parse_arg "$@")"
+        shift
+        ;;
+      --version=*)
+        VERSION="$(parse_arg "$@")"
+        ;;
+      --)
+        shift
+        # We remove the -- added above.
+        ALL_FLAGS="${ALL_FLAGS% --}"
+        break
+        ;;
+      -*)
+        echoerr "Unknown flag $1"
+        echoerr "Run with --help to see usage."
+        exit 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+
+    shift
+  done
+
   CACHE_DIR=$(echo_cache_dir)
-  STANDALONE_INSTALL_PREFIX=${STANDALONE_INSTALL_PREFIX:-$HOME/.local}
+  STANDALONE_INSTALL_PREFIX=${STANDALONE_INSTALL_PREFIX:-/usr/local/bin}
   VERSION=${VERSION:-$(echo_latest_version)}
-    # These can be overridden for testing but shouldn't normally be used as it can
-    # result in a broken code-server.
   OS=${OS:-$(os)}
   ARCH=${ARCH:-$(arch)}
 
-  DISTRO=$(distro_name)
-
-  echo "$OS $ARCH $DISTRO $CACHE_DIR $STANDALONE_INSTALL_PREFIX $VERSION"
-
-  case $DISTRO in
-    macos) install_standalone ;;
-    debian) install_standalone ;;
-    fedora | opensuse) install_standalone ;;
+  case $OS in
+    darwin) install_standalone ;;
+    linux) install_standalone ;;
     *) echoh "Unsupported package manager." ;;
+  esac
+}
+
+parse_arg() {
+  case "$1" in
+    *=*)
+      # Remove everything after first equal sign.
+      opt="${1%%=*}"
+      # Remove everything before first equal sign.
+      optarg="${1#*=}"
+      if [ ! "$optarg" ] && [ ! "${OPTIONAL-}" ]; then
+        echoerr "$opt requires an argument"
+        echoerr "Run with --help to see usage."
+        exit 1
+      fi
+      echo "$optarg"
+      return
+      ;;
+  esac
+
+  case "${2-}" in
+    "" | -*)
+      if [ ! "${OPTIONAL-}" ]; then
+        echoerr "$1 requires an argument"
+        echoerr "Run with --help to see usage."
+        exit 1
+      fi
+      ;;
+    *)
+      echo "$2"
+      return
+      ;;
   esac
 }
 
@@ -29,20 +96,17 @@ install_standalone() {
   echoh "Installing v$VERSION of the $ARCH release from GitHub."
   echoh
 
-#  fetch "https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
-#    "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
+  fetch "https://github.com/dimcz/dview/releases/download/v${VERSION}/dview_${VERSION}_${OS}_${ARCH}.tar.gz" \
+    "$CACHE_DIR/dview_${VERSION}_${OS}_${ARCH}.tar.gz"
 
- # sh_c mkdir -p "$STANDALONE_INSTALL_PREFIX" 2> /dev/null || true
+  sh_c mkdir -p "$STANDALONE_INSTALL_PREFIX" 2> /dev/null || true
 
-#  sh_c="sh_c"
-#  if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
-#    sh_c="sudo_sh_c"
-#  fi
+  sh_c="sh_c"
+  if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
+    sh_c="sudo_sh_c"
+  fi
 
-#  "$sh_c" mkdir -p "$STANDALONE_INSTALL_PREFIX/lib" "$STANDALONE_INSTALL_PREFIX/bin"
-#  "$sh_c" tar -C "$STANDALONE_INSTALL_PREFIX/lib" -xzf "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
-#  "$sh_c" mv -f "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION-$OS-$ARCH" "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
-#  "$sh_c" ln -fs "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION/bin/code-server" "$STANDALONE_INSTALL_PREFIX/bin/code-server"
+  "$sh_c" tar -C "$STANDALONE_INSTALL_PREFIX" -xzf "$CACHE_DIR/dview_${VERSION}_${OS}_${ARCH}.tar.gz"
 }
 
 has_standalone() {
@@ -61,7 +125,7 @@ os() {
   uname="$(uname)"
   case $uname in
     Linux) echo linux ;;
-    Darwin) echo macos ;;
+    Darwin) echo darwin ;;
     FreeBSD) echo freebsd ;;
     *) echo "$uname" ;;
   esac
@@ -165,6 +229,29 @@ echo_latest_version() {
   version="${version#https://github.com/dimcz/dview/releases/tag/}"
   version="${version#v}"
   echo "$version"
+}
+
+fetch() {
+  URL="$1"
+  FILE="$2"
+
+  if [ -e "$FILE" ]; then
+    echoh "+ Reusing $FILE"
+    return
+  fi
+
+  sh_c mkdir -p "$CACHE_DIR"
+  sh_c curl \
+    -#fL \
+    -o "$FILE.incomplete" \
+    -C - \
+    "$URL"
+  sh_c mv "$FILE.incomplete" "$FILE"
+}
+
+sh_c() {
+  echoh "+ $*"
+  sh -c "$*"
 }
 
 main "$@"
