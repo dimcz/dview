@@ -2,7 +2,8 @@ name: Release GO binaries
 
 on:
   push:
-    - "*"
+    branches:
+      - 'main'
 
 jobs:
   releases-matrix:
